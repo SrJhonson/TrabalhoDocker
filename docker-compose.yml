@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
@@ -9,9 +9,9 @@ services:
       - db
     env_file:
       - ./backend/.env
-    environment:
-      - DB_PORT=3306  # Força o app a usar a porta interna do container
     restart: always
+    networks:
+      - appnet
 
   db:
     image: mysql:8
@@ -23,6 +23,12 @@ services:
       - "3308:3306"
     volumes:
       - dbdata:/var/lib/mysql
+    networks:
+      - appnet
 
 volumes:
   dbdata:
+
+networks:
+  appnet:
+    driver: bridge
