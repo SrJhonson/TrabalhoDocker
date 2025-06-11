@@ -53,7 +53,7 @@ jobs:
             sonarqube:lts
 
           echo "⏳ Aguardando SonarQube ficar pronto..."
-          for i in {1..12}; do
+          for i in {1..20}; do
             if curl -s http://localhost:8151/api/system/health | grep -q '"status":"UP"'; then
               echo "✅ SonarQube está no ar!"
               break
@@ -71,7 +71,7 @@ jobs:
               -Dsonar.projectKey=videogame-app \
               -Dsonar.projectName="Videogame App" \
               -Dsonar.sources=. \
-              -Dsonar.host.url=http://localhost:8151 \
+              -Dsonar.host.url=http://host.docker.internal:8151 \
               -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
           if [ $? -ne 0 ]; then
