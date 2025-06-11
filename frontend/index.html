@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Video Game CRUD</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1e1e2f;
+      color: #fff;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #61dafb;
+    }
+    form {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+    }
+    input {
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      background-color: #61dafb;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      width: 100%;
+      max-width: 600px;
+    }
+    li {
+      background: #2e2e42;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li button {
+      background-color: #ff4d4d;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gerenciador de Jogos</h1>
+
+  <form id="gameForm">
+    <input type="text" id="title" placeholder="Título" required />
+    <input type="text" id="genre" placeholder="Gênero" required />
+    <input type="text" id="platform" placeholder="Plataforma" required />
+    <button type="submit">Salvar</button>
+  </form>
+
+  <ul id="gameList"></ul>
+
+  <script>
+    async function fetchGames() {
+      const res = await fetch('/games');
+      const games = await res.json();
+      const list = document.getElementById('gameList');
+      list.innerHTML = '';
+      games.forEach(game => {
+        const li = document.createElement('li');
+        li.innerText = `${game.title} (${game.genre}, ${game.platform})`;
+        const del = document.createElement('button');
+        del.innerText = 'Excluir';
+        del.onclick = async () => {
+          await fetch(`/games/${game.id}`, { method: 'DELETE' });
+          fetchGames();
+        };
+        li.appendChild(del);
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById('gameForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const genre = document.getElementById('genre').value;
+      const platform = document.getElementById('platform').value;
+      await fetch('/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, genre, platform })
+      });
+      e.target.reset();
+      fetchGames();
+    });
+
+    fetchGames();
+  </script>
+</body>
+</html>
