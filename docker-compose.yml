@@ -2,25 +2,22 @@ version: '3.8'
 
 services:
   app:
-    build: ./backend
+    image: srjhonson/videogame-app
     ports:
       - "8146:3000"
     depends_on:
       - db
+    env_file:
+      - ./backend/.env
     environment:
-      - DB_HOST=db
-      - DB_USER=root
-      - DB_PASSWORD=root
-      - DB_NAME=videogamedb
-      - DB_PORT=3308
-    volumes:
-      - ./backend:/app
+      - DB_PORT=3306  # Força o app a usar a porta interna do container
+    restart: always
 
   db:
     image: mysql:8
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: videogamedb
     ports:
       - "3308:3306"
