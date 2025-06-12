@@ -56,13 +56,15 @@ jobs:
               -e SONAR_JAVA_OPTS="-Xmx1G -Xms1G" \
               sonarqube:9.9.4-community
 
-            echo "⏳ Aguardando SonarQube responder com status UP e porta escutando..."
-            for i in {1..30}; do
-              if curl -s -m 5 http://localhost:8151/api/system/status | grep -q '"status":"UP"'; then
-                echo "✅ SonarQube está com status UP!"
-                nc -z localhost 8151 && echo "🟢 Porta 8151 OK!" && break
+            echo "⏳ Aguardando SonarQube responder com HTTP 200..."
+            for i in {1..60}; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8151/api/system/status)
+              if [ "$code" = "200" ]; then
+                echo "✅ SonarQube está no ar e respondeu com 200!"
+                sleep 5
+                break
               fi
-              echo "⏱️ Tentativa $i: aguardando SonarQube..."
+              echo "⏱️ Tentativa $i: aguardando SonarQube (respondeu $code)..."
               sleep 5
             done
 
