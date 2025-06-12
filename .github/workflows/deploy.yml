@@ -46,26 +46,27 @@ jobs:
           script: |
             cd ~/app
 
-            echo "🚀 Reiniciando SonarQube na porta 8151..."
+            echo "🚀 Iniciando SonarQube na porta 8151 com memória garantida..."
             docker stop sonar || true
             docker rm sonar || true
             docker run -d --name sonar \
+              --restart=unless-stopped \
               -p 8151:9000 \
               -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
-              sonarqube:lts
+              -e SONAR_JAVA_OPTS="-Xmx1G -Xms1G" \
+              sonarqube:9.9.4-community
 
-            echo "⏳ Aguardando SonarQube ficar pronto para análise..."
+            echo "⏳ Aguardando SonarQube responder com status UP e porta escutando..."
             for i in {1..30}; do
               if curl -s -m 5 http://localhost:8151/api/system/status | grep -q '"status":"UP"'; then
-                echo "✅ SonarQube está com status UP"
-                echo "🕵️ Verificando se a porta 8151 está escutando..."
+                echo "✅ SonarQube está com status UP!"
                 nc -z localhost 8151 && echo "🟢 Porta 8151 OK!" && break
               fi
-              echo "⏱️ Aguardando SonarQube... ($i/30)"
+              echo "⏱️ Tentativa $i: aguardando SonarQube..."
               sleep 5
             done
 
-            echo "🧪 Executando análise com sonar-scanner (4.7)..."
+            echo "🧪 Rodando análise com sonar-scanner (v4.7)..."
             docker run --rm \
               --network=host \
               -v $PWD:/usr/src \
@@ -79,16 +80,14 @@ jobs:
                 -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
             if [ $? -ne 0 ]; then
-              echo "❌ Análise do SonarQube falhou. Abortando deploy."
+              echo "❌ Análise do Sonar falhou. Encerrando pipeline."
               exit 1
             fi
 
-            echo "📊 Análise concluída com sucesso!"
-
-            echo "🛑 Parando SonarQube..."
+            echo "📊 Análise finalizada com sucesso!"
             docker stop sonar || true
 
-            echo "🔁 Atualizando containers da aplicação..."
+            echo "🔄 Atualizando aplicação com Docker Compose..."
             docker compose down
             docker compose up -d --build
 
