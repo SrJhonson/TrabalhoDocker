@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   app:
-    image: srjhonson/videogame-app
+    build: ./frontend
     ports:
       - "8146:3000"
     depends_on:
