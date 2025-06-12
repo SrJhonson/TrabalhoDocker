@@ -46,7 +46,7 @@ jobs:
           script: |
             cd ~/app
 
-            echo "🚀 Iniciando SonarQube na porta 8151 com memória garantida..."
+            echo "🚀 Subindo SonarQube na porta 8151..."
             docker stop sonar || true
             docker rm sonar || true
             docker run -d --name sonar \
@@ -56,43 +56,40 @@ jobs:
               -e SONAR_JAVA_OPTS="-Xmx1G -Xms1G" \
               sonarqube:9.9.4-community
 
-            echo "⏳ Aguardando SonarQube responder com HTTP 200..."
+            echo "⏳ Aguardando Sonar responder com HTTP 200..."
             for i in {1..60}; do
               code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8151/api/system/status)
               if [ "$code" = "200" ]; then
-                echo "✅ SonarQube está no ar e respondeu com 200!"
-                echo "🧘 Aguardando mais 15 segundos para garantir que o Sonar esteja 100% carregado..."
+                echo "✅ Sonar UP! Aguardando 15s extras pra garantir..."
                 sleep 15
                 break
               fi
-              echo "⏱️ Tentativa $i: aguardando SonarQube (respondeu $code)..."
+              echo "⏱️ Tentativa $i: status $code"
               sleep 5
             done
 
-            echo "🧪 Rodando análise com sonar-scanner (v4.7)..."
-            docker run --rm \
-              --network=host \
-              -v $PWD:/usr/src \
-              -w /usr/src \
-              sonarsource/sonar-scanner-cli:4.7 \
-              sonar-scanner \
-                -Dsonar.projectKey=videogame-app \
-                -Dsonar.projectName="Videogame App" \
-                -Dsonar.sources=. \
-                -Dsonar.host.url=http://localhost:8151 \
-                -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-                -Dsonar.scanner.skip=bootstrap
+            echo "📦 Baixando scanner nativo e rodando análise local..."
+            curl -sSLo sonar.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+            unzip -q sonar.zip
+            export PATH="$PWD/sonar-scanner-4.7.0.2747-linux/bin:$PATH"
+
+            sonar-scanner \
+              -Dsonar.projectKey=videogame-app \
+              -Dsonar.projectName="Videogame App" \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=http://localhost:8151 \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
             if [ $? -ne 0 ]; then
-              echo "❌ Análise do Sonar falhou. Encerrando pipeline."
+              echo "❌ Análise do Sonar falhou. Abortando..."
               exit 1
             fi
 
-            echo "📊 Análise finalizada com sucesso!"
+            echo "📊 Análise concluída!"
             docker stop sonar || true
 
-            echo "🔄 Atualizando aplicação com Docker Compose..."
+            echo "🔄 Atualizando app com Docker Compose..."
             docker compose down
             docker compose up -d --build
 
-            echo "✅ Deploy concluído com sucesso!"
+            echo "✅ Deploy finalizado com sucesso!"
