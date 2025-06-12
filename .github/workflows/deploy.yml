@@ -22,10 +22,10 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build da imagem da aplicação
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/minha-aplicacao:latest ./backend
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/videogame-app:latest ./backend
 
       - name: Push da imagem para o Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/minha-aplicacao:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/videogame-app:latest
 
       - name: Copiar arquivos para o servidor remoto
         uses: appleboy/scp-action@master
@@ -70,9 +70,10 @@ jobs:
 
             echo "🧪 Executando análise com sonar-scanner (imagem docker)..."
             docker run --rm \
+              --network host \
               -v $PWD:/usr/src \
               -w /usr/src \
-              --network host \
+              -e SONAR_SCANNER_OPTS="-Dsonar.userHome=/tmp/sonar" \
               sonarsource/sonar-scanner-cli:4.7 \
               sonar-scanner \
                 -Dsonar.projectKey=videogame-app \
@@ -82,15 +83,17 @@ jobs:
                 -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
             if [ $? -ne 0 ]; then
-              echo "❌ Análise do Sonar falhou. Abortando..."
+              echo "❌ Análise do SonarQube falhou. Abortando deploy."
               exit 1
             fi
 
-            echo "📊 Análise concluída!"
+            echo "📊 Análise concluída com sucesso!"
+
+            echo "🛑 Encerrando SonarQube..."
             docker stop sonar || true
 
-            echo "🔄 Atualizando app com Docker Compose..."
+            echo "🔁 Atualizando containers da aplicação..."
             docker compose down
             docker compose up -d --build
 
-            echo "✅ Deploy finalizado com sucesso!"
+            echo "✅ Deploy concluído com sucesso!"
