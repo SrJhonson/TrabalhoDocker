@@ -68,12 +68,13 @@ jobs:
             docker run --rm \
               -v $PWD:/usr/src \
               -w /usr/src \
+              --add-host=host.docker.internal:host-gateway \
               sonarsource/sonar-scanner-cli \
               sonar-scanner \
                 -Dsonar.projectKey=videogame-app \
                 -Dsonar.projectName="Videogame App" \
                 -Dsonar.sources=. \
-                -Dsonar.host.url=http://127.0.0.1:8151 \
+                -Dsonar.host.url=http://host.docker.internal:8151 \
                 -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
             if [ $? -ne 0 ]; then
