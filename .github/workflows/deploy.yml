@@ -64,19 +64,18 @@ jobs:
               sleep 5
             done
 
-            echo "🧪 Executando análise com sonar-scanner..."
+            echo "🧪 Executando análise com sonar-scanner (4.7)..."
             docker run --rm \
               --network=host \
               -v $PWD:/usr/src \
               -w /usr/src \
-              sonarsource/sonar-scanner-cli \
+              sonarsource/sonar-scanner-cli:4.7 \
               sonar-scanner \
                 -Dsonar.projectKey=videogame-app \
                 -Dsonar.projectName="Videogame App" \
                 -Dsonar.sources=. \
                 -Dsonar.host.url=http://localhost:8151 \
-                -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-                -Dsonar.scanner.skipVersionCheck=true
+                -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
             if [ $? -ne 0 ]; then
               echo "❌ Análise do SonarQube falhou. Abortando deploy."
