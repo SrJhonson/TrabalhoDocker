@@ -54,13 +54,14 @@ jobs:
               -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
               sonarqube:lts
 
-            echo "⏳ Aguardando endpoint de análise do SonarQube..."
+            echo "⏳ Aguardando SonarQube ficar pronto para análise..."
             for i in {1..30}; do
-              curl -s -m 5 http://localhost:8151/api/v2/analysis/version > /dev/null && {
-                echo "✅ Endpoint de análise do Sonar está pronto!"
-                break
-              }
-              echo "⏱️ Esperando endpoint de análise... ($i/30)"
+              if curl -s -m 5 http://localhost:8151/api/system/status | grep -q '"status":"UP"'; then
+                echo "✅ SonarQube está com status UP"
+                echo "🕵️ Verificando se a porta 8151 está escutando..."
+                nc -z localhost 8151 && echo "🟢 Porta 8151 OK!" && break
+              fi
+              echo "⏱️ Aguardando SonarQube... ($i/30)"
               sleep 5
             done
 
@@ -84,7 +85,7 @@ jobs:
 
             echo "📊 Análise concluída com sucesso!"
 
-            echo "🛑 Encerrando SonarQube..."
+            echo "🛑 Parando SonarQube..."
             docker stop sonar || true
 
             echo "🔁 Atualizando containers da aplicação..."
