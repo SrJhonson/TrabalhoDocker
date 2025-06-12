@@ -80,7 +80,8 @@ jobs:
                 -Dsonar.projectName="Videogame App" \
                 -Dsonar.sources=. \
                 -Dsonar.host.url=http://localhost:8151 \
-                -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+                -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+                -Dsonar.scanner.skipBootstrapIndex=true
 
             if [ $? -ne 0 ]; then
               echo "❌ Análise do Sonar falhou. Encerrando pipeline."
