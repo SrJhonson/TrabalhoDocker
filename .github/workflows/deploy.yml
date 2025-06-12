@@ -55,13 +55,14 @@ jobs:
               sonarqube:lts
 
             echo "⏳ Aguardando SonarQube ficar pronto..."
-            for i in {1..20}; do
-              if curl -s http://localhost:8151/api/system/health | grep -q '"status":"UP"'; then
+            for i in {1..30}; do
+              STATUS=$(curl -s -m 5 http://localhost:8151/api/system/status | grep -o '"status":"[A-Z]*"')
+              if echo "$STATUS" | grep -q '"status":"UP"'; then
                 echo "✅ SonarQube está no ar!"
                 break
               fi
-              echo "⏱️ Esperando..."
-              sleep 10
+              echo "⏱️ Esperando SonarQube... ($i/30)"
+              sleep 5
             done
 
             echo "🧪 Executando análise com sonar-scanner..."
