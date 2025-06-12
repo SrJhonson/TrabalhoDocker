@@ -68,20 +68,18 @@ jobs:
               sleep 5
             done
 
-            echo "📦 Instalando unzip, Java e executando análise..."
-            apt-get update -y
-            apt-get install unzip default-jre -y
-            curl -sSLo sonar.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
-            unzip -q sonar.zip
-            chmod +x sonar-scanner-4.7.0.2747-linux/bin/sonar-scanner
-            export PATH="$PWD/sonar-scanner-4.7.0.2747-linux/bin:$PATH"
-
-            sonar-scanner \
-              -Dsonar.projectKey=videogame-app \
-              -Dsonar.projectName="Videogame App" \
-              -Dsonar.sources=. \
-              -Dsonar.host.url=http://localhost:8151 \
-              -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            echo "🧪 Executando análise com sonar-scanner (imagem docker)..."
+            docker run --rm \
+              -v $PWD:/usr/src \
+              -w /usr/src \
+              --network host \
+              sonarsource/sonar-scanner-cli:4.7 \
+              sonar-scanner \
+                -Dsonar.projectKey=videogame-app \
+                -Dsonar.projectName="Videogame App" \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=http://localhost:8151 \
+                -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
             if [ $? -ne 0 ]; then
               echo "❌ Análise do Sonar falhou. Abortando..."
