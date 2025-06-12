@@ -61,7 +61,8 @@ jobs:
               code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8151/api/system/status)
               if [ "$code" = "200" ]; then
                 echo "✅ SonarQube está no ar e respondeu com 200!"
-                sleep 5
+                echo "🧘 Aguardando mais 15 segundos para garantir que o Sonar esteja 100% carregado..."
+                sleep 15
                 break
               fi
               echo "⏱️ Tentativa $i: aguardando SonarQube (respondeu $code)..."
