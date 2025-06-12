@@ -68,9 +68,12 @@ jobs:
               sleep 5
             done
 
-            echo "📦 Baixando scanner nativo e rodando análise local..."
+            echo "📦 Instalando unzip e executando scanner local..."
+            sudo apt-get update -y
+            sudo apt-get install unzip -y
             curl -sSLo sonar.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
             unzip -q sonar.zip
+            chmod +x sonar-scanner-4.7.0.2747-linux/bin/sonar-scanner
             export PATH="$PWD/sonar-scanner-4.7.0.2747-linux/bin:$PATH"
 
             sonar-scanner \
