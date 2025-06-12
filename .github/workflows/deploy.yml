@@ -68,9 +68,9 @@ jobs:
               sleep 5
             done
 
-            echo "📦 Instalando unzip e executando scanner local..."
-            sudo apt-get update -y
-            sudo apt-get install unzip -y
+            echo "📦 Instalando unzip, Java e executando análise..."
+            apt-get update -y
+            apt-get install unzip default-jre -y
             curl -sSLo sonar.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
             unzip -q sonar.zip
             chmod +x sonar-scanner-4.7.0.2747-linux/bin/sonar-scanner
