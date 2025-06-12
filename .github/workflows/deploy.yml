@@ -58,7 +58,8 @@ jobs:
             for i in {1..30}; do
               STATUS=$(curl -s -m 5 http://localhost:8151/api/system/status | grep -o '"status":"[A-Z]*"')
               if echo "$STATUS" | grep -q '"status":"UP"'; then
-                echo "✅ SonarQube está no ar!"
+                echo "✅ SonarQube está no ar! Aguardando estabilização final..."
+                sleep 10
                 break
               fi
               echo "⏱️ Esperando SonarQube... ($i/30)"
