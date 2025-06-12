@@ -22,10 +22,10 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build da imagem da aplicação
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/videogame-app:latest ./backend
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/minha-aplicacao:latest ./backend
 
       - name: Push da imagem para o Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/videogame-app:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/minha-aplicacao:latest
 
       - name: Copiar arquivos para o servidor remoto
         uses: appleboy/scp-action@master
@@ -68,31 +68,27 @@ jobs:
               sleep 5
             done
 
-            echo "🧪 Executando análise com sonar-scanner (imagem docker)..."
+            echo "📦 Executando análise com sonar-scanner (imagem docker)..."
             docker run --rm \
-              -e SONAR_SCANNER_OPTS="-Dsonar.userHome=/tmp/sonar" \
-              -v $PWD:/usr/src \
-              -w /usr/src \
-              sonarsource/sonar-scanner-cli:4.7 \
-              sonar-scanner \
+              -v "$PWD":/usr/src \
+              -v /tmp/sonar:/opt/sonar-scanner/.sonar \
+              sonarsource/sonar-scanner-cli \
                 -Dsonar.projectKey=videogame-app \
                 -Dsonar.projectName="Videogame App" \
                 -Dsonar.sources=. \
-                -Dsonar.host.url=http://host.docker.internal:8151 \
+                -Dsonar.host.url=http://localhost:8151 \
                 -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
             if [ $? -ne 0 ]; then
-              echo "❌ Análise do SonarQube falhou. Abortando deploy."
+              echo "❌ Análise do Sonar falhou. Abortando..."
               exit 1
             fi
 
-            echo "📊 Análise concluída com sucesso!"
-
-            echo "🛑 Encerrando SonarQube..."
+            echo "📊 Análise concluída!"
             docker stop sonar || true
 
-            echo "🔁 Atualizando containers da aplicação..."
+            echo "🔄 Atualizando app com Docker Compose..."
             docker compose down
             docker compose up -d --build
 
-            echo "✅ Deploy concluído com sucesso!"
+            echo "✅ Deploy finalizado com sucesso!"
