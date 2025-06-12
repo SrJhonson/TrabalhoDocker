@@ -81,7 +81,7 @@ jobs:
                 -Dsonar.sources=. \
                 -Dsonar.host.url=http://localhost:8151 \
                 -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-                -Dsonar.scanner.skipBootstrapIndex=true
+                -Dsonar.scanner.skip=bootstrap
 
             if [ $? -ne 0 ]; then
               echo "❌ Análise do Sonar falhou. Encerrando pipeline."
