@@ -70,16 +70,15 @@ jobs:
 
             echo "🧪 Executando análise com sonar-scanner (imagem docker)..."
             docker run --rm \
-              --network host \
+              -e SONAR_SCANNER_OPTS="-Dsonar.userHome=/tmp/sonar" \
               -v $PWD:/usr/src \
               -w /usr/src \
-              -e SONAR_SCANNER_OPTS="-Dsonar.userHome=/tmp/sonar" \
               sonarsource/sonar-scanner-cli:4.7 \
               sonar-scanner \
                 -Dsonar.projectKey=videogame-app \
                 -Dsonar.projectName="Videogame App" \
                 -Dsonar.sources=. \
-                -Dsonar.host.url=http://localhost:8151 \
+                -Dsonar.host.url=http://host.docker.internal:8151 \
                 -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
             if [ $? -ne 0 ]; then
