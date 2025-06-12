@@ -71,7 +71,7 @@ jobs:
             echo "📦 Executando análise com sonar-scanner (imagem docker)..."
             docker run --rm \
               -v "$PWD":/usr/src \
-              -v /tmp/sonar:/opt/sonar-scanner/.sonar \
+              -e SONAR_USER_HOME=/tmp/sonar \
               sonarsource/sonar-scanner-cli \
                 -Dsonar.projectKey=videogame-app \
                 -Dsonar.projectName="Videogame App" \
