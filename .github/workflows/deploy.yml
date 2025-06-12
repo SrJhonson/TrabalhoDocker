@@ -46,12 +46,14 @@ jobs:
         script: |
           cd ~/app
 
-          echo "🚀 Iniciando SonarQube na porta 8151..."
-          docker run -d --rm --name sonar \
+          echo "🚀 Reiniciando SonarQube na porta 8151..."
+          docker stop sonar || true
+          docker rm sonar || true
+          docker run -d --name sonar \
             -p 8151:9000 \
             -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
             sonarqube:lts
-
+            
           echo "⏳ Aguardando SonarQube ficar pronto..."
           for i in {1..20}; do
             if curl -s http://localhost:8151/api/system/health | grep -q '"status":"UP"'; then
