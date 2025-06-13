@@ -1,4 +1,4 @@
-name: CI/CD Deploy
+name: Deploy da aplicação
 
 on:
   push:
@@ -10,85 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: 📥 Checkout do código
         uses: actions/checkout@v3
 
-      - name: Configurar chave SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Login no Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Build da imagem da aplicação
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/minha-aplicacao:latest ./backend
-
-      - name: Push da imagem para o Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/minha-aplicacao:latest
-
-      - name: Copiar arquivos para o servidor remoto
-        uses: appleboy/scp-action@master
-        with:
-          host: 201.23.3.86
-          username: aluno
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "."
-          target: "~/app"
-          strip_components: 0
-
-      - name: Executar deploy remoto
+      - name: 📦 Configurar acesso SSH
         uses: appleboy/ssh-action@master
         with:
-          host: 201.23.3.86
-          username: aluno
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
           script: |
-            cd ~/app
-
-            echo "🚀 Subindo SonarQube na porta 8151..."
-            docker stop sonar || true
-            docker rm sonar || true
-            docker run -d --name sonar \
-              --restart=unless-stopped \
-              -p 8151:9000 \
-              -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
-              -e SONAR_JAVA_OPTS="-Xmx1G -Xms1G" \
-              sonarqube:9.9.4-community
-
-            echo "⏳ Aguardando Sonar responder com HTTP 200..."
-            for i in {1..60}; do
-              code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8151/api/system/status)
-              if [ "$code" = "200" ]; then
-                echo "✅ Sonar UP! Aguardando 15s extras pra garantir..."
-                sleep 15
-                break
-              fi
-              echo "⏱️ Tentativa $i: status $code"
-              sleep 5
-            done
-
-            echo "📦 Executando análise com sonar-scanner (imagem docker)..."
-            docker run --rm \
-              -v "$PWD":/usr/src \
-              -e SONAR_USER_HOME=/tmp/sonar \
-              sonarsource/sonar-scanner-cli \
-                -Dsonar.projectKey=videogame-app \
-                -Dsonar.projectName="Videogame App" \
-                -Dsonar.sources=. \
-                -Dsonar.host.url=http://localhost:8151 \
-                -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-            if [ $? -ne 0 ]; then
-              echo "❌ Análise do Sonar falhou. Abortando..."
-              exit 1
-            fi
-
-            echo "📊 Análise concluída!"
-            docker stop sonar || true
-
-            echo "🔄 Atualizando app com Docker Compose..."
+            echo "🚀 Iniciando deploy..."
+            cd /caminho/do/projeto
+            git pull origin main
             docker compose down
             docker compose up -d --build
-
             echo "✅ Deploy finalizado com sucesso!"

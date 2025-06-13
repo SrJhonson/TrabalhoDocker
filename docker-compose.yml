@@ -1,34 +1,41 @@
 version: "3.8"
 
 services:
-  app:
-    build: ./frontend
-    ports:
-      - "8146:3000"
-    depends_on:
-      - db
-    env_file:
-      - ./backend/.env
-    restart: always
-    networks:
-      - appnet
-
   db:
     image: mysql:8
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: videogamedb
+      MYSQL_DATABASE: videogames
+      MYSQL_ROOT_PASSWORD: root
     ports:
       - "3308:3306"
     volumes:
-      - dbdata:/var/lib/mysql
+      - db_data:/var/lib/mysql
+    networks:
+      - appnet
+
+  backend:
+    build: ./backend
+    ports:
+      - "8147:3001"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+    networks:
+      - appnet
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8146:3000"
+    depends_on:
+      - backend
     networks:
       - appnet
 
 volumes:
-  dbdata:
+  db_data:
 
 networks:
   appnet:
-    driver: bridge
