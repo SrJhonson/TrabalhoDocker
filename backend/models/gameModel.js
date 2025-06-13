@@ -1,25 +1,21 @@
-const db = require('../db');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db');
+const Game = sequelize.define('Game', {
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  genre: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  platform: {
+    type: DataTypes.STRING,
+    allowNull: false
+  }
+}, {
+  tableName: 'games',
+  timestamps: false
+});
 
-async function getAllGames() {
-  const [rows] = await db.execute('SELECT * FROM games');
-  return rows;
-}
-
-async function createGame(title, genre, platform) {
-  await db.execute('INSERT INTO games (title, genre, platform) VALUES (?, ?, ?)', [title, genre, platform]);
-}
-
-async function updateGame(id, title, genre, platform) {
-  await db.execute('UPDATE games SET title = ?, genre = ?, platform = ? WHERE id = ?', [title, genre, platform, id]);
-}
-
-async function deleteGame(id) {
-  await db.execute('DELETE FROM games WHERE id = ?', [id]);
-}
-
-module.exports = {
-  getAllGames,
-  createGame,
-  updateGame,
-  deleteGame
-};
+module.exports = Game;

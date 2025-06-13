@@ -1,19 +1,6 @@
-FROM node:18
-
-# Diretório de trabalho dentro do container
+FROM node:18-alpine
 WORKDIR /app
-
-# Copia apenas os arquivos de dependência primeiro (para aproveitar cache)
-COPY package*.json ./
-
-# Instala as dependências
-RUN npm install
-
-# Copia o restante da aplicação
 COPY . .
-
-# Exponha a porta que a aplicação escuta (boa prática, mesmo que o Docker Compose faça o mapeamento)
-EXPOSE 3000
-
-# Comando padrão para iniciar o app
-CMD ["node", "app.js"]
+RUN npm install
+EXPOSE 3001
+CMD ["npm", "start"]
