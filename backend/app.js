@@ -2,30 +2,25 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const gameRoutes = require('./routes/games');
-const sequelize = require('./db');
-const Game = require('./models/gameModel'); // ⬅️ Importa o model para sync
+const connectWithRetry = require('./db'); // usa conexão com retry
+require('./models/gameModel'); // importa o model para registrar antes do sync
 
 dotenv.config();
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
 app.use('/games', gameRoutes);
 
-// Teste de conexão + sincronização da tabela
-sequelize.authenticate()
-  .then(() => {
-    console.log('✅ Conectado ao banco de dados!');
-    return sequelize.sync(); // ⬅️ Garante que a tabela 'games' exista
-  })
-  .then(() => {
+connectWithRetry()
+  .then(async (sequelize) => {
+    await sequelize.sync(); // sincroniza a tabela 'games'
     console.log('✅ Tabela sincronizada!');
+    app.listen(PORT, () => {
+      console.log(`🚀 Backend rodando na porta ${PORT}`);
+    });
   })
   .catch((err) => {
-    console.error('❌ Erro ao conectar ou sincronizar com o banco:', err);
+    console.error('❌ Erro ao conectar ou sincronizar com o banco:', err.message);
   });
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`🚀 Backend rodando na porta ${PORT}`);
-});
