@@ -79,11 +79,6 @@ jobs:
                 -Dsonar.host.url=http://localhost:8151 \
                 -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-            if [ $? -ne 0 ]; then
-              echo "❌ Análise do Sonar falhou. Abortando..."
-              exit 1
-            fi
-
             echo "📊 Análise concluída!"
             docker stop sonar || true
 
